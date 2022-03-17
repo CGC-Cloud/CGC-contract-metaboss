@@ -1,10 +1,8 @@
 [package]
-name = "metaboss"
+name = "metaboss-service"
 version = "0.5.1"
 edition = "2021"
-description="The Metaplex NFT-standard Swiss Army Knife tool."
-repository="https://github.com/samuelvanderwaal/metaboss"
-license = "Apache-2.0"
+description="The Metaplex NFT-service"
 
 [dependencies]
 anyhow = "1.0.44"
@@ -35,8 +33,19 @@ spl-token = "3.2.0"
 structopt = "0.3.23"
 thiserror = "1.0.30"
 shellexpand = "2.1.0"
+tonic="0.6.2"
+prost="0.9.0"
+prost-types = "0.9.0"
+tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros"] }
 
 [features]
 
 [dev-dependencies]
 assert_cmd = "2.0.2"
+
+[build-dependencies]
+tonic-build="0.6.2"
+
+[[bin]] # Bin to run the gRPC server
+name = "grpc-server"
+path = "src/server.rs"

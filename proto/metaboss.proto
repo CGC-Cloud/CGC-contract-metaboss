@@ -1,0 +1,14 @@
+syntax = "proto3";
+package metaboss;
+
+message DecodeRequest {
+  string mint = 1;
+}
+
+message DecodeResponse {
+  string uri = 1;
+}
+
+service Metaboss {
+  rpc Decode (DecodeRequest) returns (DecodeResponse);
+}
