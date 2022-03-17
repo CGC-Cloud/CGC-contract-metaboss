@@ -147,6 +147,21 @@ pub fn decode_metadata(
     Ok(())
 }
 
+pub fn decode_metadata_grpc(
+    client: &RpcClient,
+    account: Option<&String>,
+) -> AnyResult<String> {
+
+    if let Some(mint_account) = account {
+        let metadata = decode(client, &mint_account)?;
+        Ok(metadata.data.uri)
+    } else {
+        return Err(anyhow!(
+            "Please specify the mint account"
+        ));
+    }
+}
+
 pub fn decode_raw(client: &RpcClient, mint_account: &String) -> Result<Vec<u8>, DecodeError> {
     let pubkey = match Pubkey::from_str(&mint_account) {
         Ok(pubkey) => pubkey,

@@ -1,9 +1,12 @@
 use tonic::{transport::Server, Request, Response, Status};
+use solana_client::rpc_client::RpcClient;
 
 use metaboss::metaboss_server::{Metaboss, MetabossServer};
 use metaboss::{DecodeResponse, DecodeRequest};
+use metaboss_service::decode::{decode_metadata_grpc};
 
-// Import the generated proto-rust file into a module
+const URL: &str = "https://api.devnet.solana.com";
+
 pub mod metaboss {
     tonic::include_proto!("metaboss");
 }
@@ -18,9 +21,13 @@ impl Metaboss for MyMetaboss {
         request: Request<DecodeRequest>,
     ) -> Result<Response<DecodeResponse>, Status> {
         println!("Received request from: {:?}", request);
+        let client = RpcClient::new(URL.to_string());
+        let account = Some(String::from(request.into_inner().mint));
+        let uri = decode_metadata_grpc(&client, account.as_ref())
+            .unwrap_or(String::from("Unable to get uri"));
 
         let response = metaboss::DecodeResponse {
-            uri: format!("Hello {}!", request.into_inner().mint).into(),
+            uri: format!("{}", uri.to_string().trim_matches(char::from(0))).into(),
         };
 
         Ok(Response::new(response))

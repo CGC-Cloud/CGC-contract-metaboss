@@ -47,5 +47,5 @@ assert_cmd = "2.0.2"
 tonic-build="0.6.2"
 
 [[bin]] # Bin to run the gRPC server
-name = "grpc-server"
+name = "grpc-service"
 path = "src/server.rs"
