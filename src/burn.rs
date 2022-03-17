@@ -20,6 +20,18 @@ use crate::derive::derive_metadata_pda;
 use crate::parse::parse_keypair;
 use crate::{decode::decode, parse::parse_solana_config};
 
+pub fn burn_one_grpc(
+    client: &RpcClient,
+    owner_keypair: Keypair,
+    mint_address: String,
+) -> Result<String> {
+    let mint_pubkey = Pubkey::from_str(&mint_address)?;
+    let owner_pubkey = owner_keypair.pubkey();
+    let sig = burn(client, &owner_keypair, &owner_pubkey, &mint_pubkey, 1)?;
+    let sig_str = format!("{}", sig);
+    Ok(sig_str)
+}
+
 pub fn burn_one(
     client: &RpcClient,
     keypair_path: Option<String>,

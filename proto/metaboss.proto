@@ -9,6 +9,15 @@ message DecodeResponse {
   string uri = 1;
 }
 
+message BurnRequest {
+  string mint = 1;
+}
+
+message BurnResponse {
+  string signature = 1;
+}
+
 service Metaboss {
   rpc Decode (DecodeRequest) returns (DecodeResponse);
+  rpc Burn (BurnRequest) returns (BurnResponse);
 }
