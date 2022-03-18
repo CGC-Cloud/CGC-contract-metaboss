@@ -26,7 +26,7 @@ use std::{fs::File, path::Path, str::FromStr};
 use crate::data::NFTData;
 use crate::limiter::create_rate_limiter;
 use crate::parse::*;
-use crate::sign::sign_one;
+use crate::sign::{sign_one, sign_one_grpc};
 use crate::{constants::*, parse::convert_local_to_remote_data};
 
 const MINT_LAYOUT: u64 = 82;
@@ -161,6 +161,7 @@ pub fn mint_from_uris(
 
     Ok(())
 }
+
 pub fn mint_one<P: AsRef<Path>>(
     client: &RpcClient,
     keypair_path: Option<String>,
@@ -230,6 +231,44 @@ pub fn mint_one<P: AsRef<Path>>(
     }
 
     Ok(())
+}
+
+pub fn mint_one_grpc(
+    client: &RpcClient,
+    keypair: Keypair,
+    receiver: String,
+    nft_data: String,
+    immutable: bool,
+    primary_sale_happened: bool,
+    sign: bool,
+) -> Result<String> {
+
+    let receiver = Pubkey::from_str(&receiver)?;
+
+    let nft_data: NFTData = serde_json::from_str(&nft_data)?;
+    let copy = keypair.to_base58_string();
+    let creator = Keypair::from_base58_string(&copy);
+
+    let (tx_id, mint_account) = mint(
+        client,
+        keypair,
+        receiver,
+        nft_data,
+        immutable,
+        primary_sale_happened,
+    )?;
+    info!("Tx id: {:?}\nMint account: {:?}", &tx_id, &mint_account);
+    let message = format!("Tx id: {:?}\nMint account: {:?}", &tx_id, &mint_account,);
+    println!("{}", message);
+
+    let mint = mint_account.to_string();
+
+    if sign {
+        //TODO: Error handling
+        sign_one_grpc(client, creator, mint_account.to_string())?;
+    }
+
+    Ok(mint)
 }
 
 pub fn mint(

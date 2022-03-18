@@ -17,7 +17,17 @@ message BurnResponse {
   string signature = 1;
 }
 
+message MintRequest {
+  string meta = 1;
+  string receiver = 2;
+}
+
+message MintResponse {
+  string mint = 1;
+}
+
 service Metaboss {
   rpc Decode (DecodeRequest) returns (DecodeResponse);
   rpc Burn (BurnRequest) returns (BurnResponse);
+  rpc Mint (MintRequest) returns (MintResponse);
 }

@@ -45,6 +45,24 @@ pub fn sign_one(client: &RpcClient, keypair_path: Option<String>, account: Strin
     Ok(())
 }
 
+pub fn sign_one_grpc(client: &RpcClient, creator: Keypair, account: String) -> Result<()> {
+
+    let account_pubkey = Pubkey::from_str(&account)?;
+    let metadata_pubkey = get_metadata_pda(account_pubkey);
+
+    info!(
+        "Signing metadata: {} with creator: {}",
+        metadata_pubkey,
+        &creator.pubkey()
+    );
+
+    let sig = sign(client, &creator, metadata_pubkey)?;
+    info!("Tx sig: {}", sig);
+    println!("Tx sig: {}", sig);
+
+    Ok(())
+}
+
 pub fn sign_all(
     client: &RpcClient,
     keypair_path: Option<String>,
