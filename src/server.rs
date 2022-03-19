@@ -69,13 +69,29 @@ impl Metaboss for MyMetaboss {
         let client = RpcClient::new(URL.to_string());
         let keypair = Keypair::from_bytes(&WALLET).unwrap();
         let request_message = request.into_inner();
+
         let receiver = String::from(request_message.receiver);
-        let nft_data = String::from(request_message.meta);
+        let name = String::from(request_message.name);
+        let symbol = String::from(request_message.symbol);
+        let uri = String::from(request_message.uri);
+        let seller_fee_basis_points = request_message.seller_fee_basis_points as u16;
+        let creator = String::from(request_message.creator);
 
         println!("receiver: {}", &receiver);
-        println!("META: {}", &nft_data);
+        println!("seller_fee_basis_points: {}", &seller_fee_basis_points);
 
-        match  mint_one_grpc(&client, keypair, receiver, nft_data, false, false, false) {
+        match  mint_one_grpc(
+            &client,
+            keypair,
+            receiver,
+            name,
+            symbol,
+            uri,
+            seller_fee_basis_points,
+            creator,
+            false,
+            false,
+            false) {
             Ok(mint) => {
                 let response = metaboss::MintResponse {
                     mint: format!("{}", mint).into(),

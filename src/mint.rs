@@ -23,7 +23,7 @@ use spl_token::{
 };
 use std::{fs::File, path::Path, str::FromStr};
 
-use crate::data::NFTData;
+use crate::data::{NFTCreator, NFTData};
 use crate::limiter::create_rate_limiter;
 use crate::parse::*;
 use crate::sign::{sign_one, sign_one_grpc};
@@ -237,7 +237,11 @@ pub fn mint_one_grpc(
     client: &RpcClient,
     keypair: Keypair,
     receiver: String,
-    nft_data: String,
+    name: String,
+    symbol: String,
+    uri: String,
+    seller_fee_basis_points: u16,
+    creator: String,
     immutable: bool,
     primary_sale_happened: bool,
     sign: bool,
@@ -245,7 +249,21 @@ pub fn mint_one_grpc(
 
     let receiver = Pubkey::from_str(&receiver)?;
 
-    let nft_data: NFTData = serde_json::from_str(&nft_data)?;
+    let mut creators= Vec::new();
+    creators.push(NFTCreator{
+        address: creator,
+        verified: false,
+        share: 100,
+    });
+
+    let nft_data = NFTData {
+        name,
+        symbol,
+        uri,
+        seller_fee_basis_points,
+        creators: Some(creators),
+    };
+
     let copy = keypair.to_base58_string();
     let creator = Keypair::from_base58_string(&copy);
 

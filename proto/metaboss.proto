@@ -18,8 +18,12 @@ message BurnResponse {
 }
 
 message MintRequest {
-  string meta = 1;
-  string receiver = 2;
+  string name = 1;
+  string symbol = 2;
+  string uri = 3;
+  int32 seller_fee_basis_points = 4;
+  string creator = 5;
+  string receiver = 6;
 }
 
 message MintResponse {
