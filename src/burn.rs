@@ -24,10 +24,11 @@ pub fn burn_one_grpc(
     client: &RpcClient,
     owner_keypair: Keypair,
     mint_address: String,
+    account: String,
 ) -> Result<String> {
     let mint_pubkey = Pubkey::from_str(&mint_address)?;
-    let owner_pubkey = owner_keypair.pubkey();
-    let sig = burn(client, &owner_keypair, &owner_pubkey, &mint_pubkey, 1)?;
+    let account_pubkey = Pubkey::from_str(&account)?;
+    let sig = burn_grpc(client, &owner_keypair, &mint_pubkey, &account_pubkey, 1)?;
     let sig_str = format!("{}", sig);
     Ok(sig_str)
 }
@@ -49,6 +50,70 @@ pub fn burn_one(
     Ok(())
 }
 
+pub fn burn_grpc(
+    client: &RpcClient,
+    signer: &Keypair,
+    mint_pubkey: &Pubkey,
+    account_pubkey: &Pubkey,
+    amount: u64,
+) -> Result<Signature> {
+
+    let spl_token_program_id = spl_token::id();
+
+    let burn_ix = spl_token::instruction::burn(
+        &spl_token_program_id,
+        &account_pubkey,
+        mint_pubkey,
+        &signer.pubkey(),
+        &[&signer.pubkey()],
+        amount,
+    )?;
+
+    let close_associated_token_account = spl_token::instruction::close_account(
+        &spl_token_program_id,
+        &account_pubkey,
+        &signer.pubkey(),
+        &signer.pubkey(),
+        &[&signer.pubkey()],
+    )?;
+
+    let mut instructions = vec![burn_ix, close_associated_token_account];
+
+    let metadata: Metadata = decode(client, &mint_pubkey.to_string())?;
+
+    if signer.pubkey() == metadata.update_authority {
+        let metadata_pubkey = derive_metadata_pda(mint_pubkey);
+
+        let data = default_data();
+
+        let clear_metadata_account = update_metadata_accounts(
+            id(),
+            metadata_pubkey,
+            signer.pubkey(),
+            None,
+            Some(data),
+            None,
+        );
+        instructions.push(clear_metadata_account);
+    }
+
+    let recent_blockhash = client.get_latest_blockhash()?;
+    let tx = Transaction::new_signed_with_payer(
+        &instructions,
+        Some(&signer.pubkey()),
+        &[signer],
+        recent_blockhash,
+    );
+
+    // Send tx with retries.
+    let res = retry(
+        Exponential::from_millis_with_factor(250, 2.0).take(3),
+        || client.send_and_confirm_transaction(&tx),
+    );
+    let sig = res?;
+
+    Ok(sig)
+}
 pub fn burn(
     client: &RpcClient,
     signer: &Keypair,

@@ -46,9 +46,11 @@ impl Metaboss for MyMetaboss {
     ) -> Result<Response<BurnResponse>, Status> {
         println!("Received request from: {:?}", request);
         let client = RpcClient::new(URL.to_string());
-        let account = String::from(request.into_inner().mint);
+        let request_message = request.into_inner();
+        let mint = String::from(request_message.mint);
+        let account = String::from(request_message.account);
         let keypair = Keypair::from_bytes(&WALLET).unwrap();
-        match  burn_one_grpc(&client, keypair, account) {
+        match  burn_one_grpc(&client, keypair, mint, account) {
             Ok(signature) => {
                 let response = metaboss::BurnResponse {
                     signature: format!("{}", signature).into(),
@@ -77,9 +79,6 @@ impl Metaboss for MyMetaboss {
         let seller_fee_basis_points = request_message.seller_fee_basis_points as u16;
         let creator = String::from(request_message.creator);
 
-        println!("receiver: {}", &receiver);
-        println!("seller_fee_basis_points: {}", &seller_fee_basis_points);
-
         match  mint_one_grpc(
             &client,
             keypair,
@@ -90,7 +89,7 @@ impl Metaboss for MyMetaboss {
             seller_fee_basis_points,
             creator,
             false,
-            false,
+            true,
             false) {
             Ok(mint) => {
                 let response = metaboss::MintResponse {
