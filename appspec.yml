@@ -9,7 +9,7 @@ version: 0.0
 os: linux 
 files:
   - source: target/release
-    destination: /opt/catheongaming/center/mintNFTToken/release
+    destination: /opt/catheongaming/center/mint-nft-token/release
 file_exists_behavior: OVERWRITE
 hooks:
   AfterInstall:
